@@ -26,10 +26,11 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const port = Number(config.get('PORT')) || 4000;
+  // 啟用關閉訊號監聽，確保 OnModuleDestroy 會被呼叫
+  app.enableShutdownHooks();
   await app.listen(port);
   // eslint-disable-next-line no-console
   console.log(`HTTP server listening on http://localhost:${port}`);
 }
 
 bootstrap();
-
