@@ -1,0 +1,63 @@
+// Prisma schema for chat server
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String
+  passwordHash  String
+  messages      Message[]
+  memberships   Membership[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Room {
+  id           String        @id @default(cuid())
+  name         String
+  isPrivate    Boolean       @default(false)
+  messages     Message[]
+  memberships  Membership[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Membership {
+  userId     String
+  roomId     String
+  role       Role        @default(MEMBER)
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room       Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@id([userId, roomId])
+  @@index([roomId])
+}
+
+model Message {
+  id         String     @id @default(cuid())
+  roomId     String
+  userId     String
+  room       Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id])
+  content    String
+  createdAt  DateTime   @default(now())
+  readAt     DateTime?
+  updatedAt  DateTime   @updatedAt
+
+  @@index([roomId, createdAt, id], map: "idx_message_room_created_id")
+}
+
