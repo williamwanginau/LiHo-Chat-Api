@@ -24,8 +24,8 @@ jobs:
           node-version: 18
           cache: npm
 
-      - name: Install dependencies (no lockfile)
-        run: npm install
+      - name: Install dependencies (npm ci)
+        run: npm ci
 
       - name: Generate Prisma Client
         run: npx prisma generate
