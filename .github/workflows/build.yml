@@ -15,16 +15,10 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-          cache-dependency-path: api/package-lock.json
+          cache-dependency-path: package-lock.json
       - name: Install dependencies
-        working-directory: ./
-        run: |
-          cd api
-          npm ci || npm install
+        run: npm ci
       - name: Generate Prisma Client
-        working-directory: ./api
         run: npx prisma generate
       - name: Build
-        working-directory: ./api
         run: npm run build
-
