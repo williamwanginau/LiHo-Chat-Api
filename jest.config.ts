@@ -3,7 +3,11 @@ import type { Config } from 'jest';
 const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/src', '<rootDir>/tests'],
+  // Only include existing roots to avoid validation errors in CI.
+  roots: ['<rootDir>/src'],
+  testMatch: [
+    "**/?(*.)+(spec|test).ts",
+  ],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
@@ -12,4 +16,3 @@ const config: Config = {
 };
 
 export default config;
-
