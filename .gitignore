@@ -5,6 +5,9 @@ dist/
 .next/
 coverage/
 
+# Local frontend repo clone (kept separate)
+LiHo-Chat-Web/
+
 # Env & local
 .env
 .env.*.local
@@ -19,4 +22,3 @@ pnpm-debug.log*
 # Prisma
 prisma/*.db
 prisma/*.db-journal
-

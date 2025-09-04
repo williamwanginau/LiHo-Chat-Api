@@ -14,9 +14,6 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: LiHo-Chat-Api
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,6 +23,7 @@ jobs:
         with:
           node-version: 18
           cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies (npm ci)
         run: npm ci
