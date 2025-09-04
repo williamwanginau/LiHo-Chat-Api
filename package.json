@@ -1,5 +1,5 @@
 {
-  "name": "chat-server",
+  "name": "liho-api",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -67,4 +67,3 @@
     "typescript": "^5.4.3"
   }
 }
-

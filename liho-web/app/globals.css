@@ -1,0 +1,14 @@
+:root {
+  --bg: #0b0c10;
+  --fg: #e5e7eb;
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+a { color: #6ee7b7; }
+
