@@ -5,8 +5,8 @@ dist/
 .next/
 coverage/
 
-# Local frontend repo clone (kept separate)
-LiHo-Chat-Web/
+# (If you ever nest a local web clone under this repo, ignore it)
+# web/
 
 # Env & local
 .env
