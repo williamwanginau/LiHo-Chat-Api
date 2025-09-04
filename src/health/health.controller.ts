@@ -14,5 +14,10 @@ export class HealthController {
       return { status: 'degraded', db: 'down' };
     }
   }
-}
 
+  // Alias for platforms or clients expecting /health
+  @Get('/health')
+  async health() {
+    return this.healthz();
+  }
+}
