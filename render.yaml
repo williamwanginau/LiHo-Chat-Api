@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: liho-chat-api
+    runtime: node
+    autoDeploy: true
+    healthCheckPath: /livez
+    buildCommand: npm ci && npm run prisma:generate && npm run build
+    startCommand: npm run prisma:deploy && npm run start:prod
+    envVars:
+      # Set these in Render Dashboard → Environment.
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: NODE_ENV
+        value: production
