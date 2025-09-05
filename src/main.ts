@@ -12,8 +12,12 @@ async function bootstrap() {
   // CORS origins: allow configuring via CORS_ORIGINS (comma-separated).
   // Fallback to commonly used patterns for local and hosted frontends.
   const corsFromEnv = config.get<string>('CORS_ORIGINS');
-  const defaultOrigins = [/localhost:\d+$/, /\.vercel\.app$/, /\.onrender\.com$/];
-  const parsedOrigins = corsFromEnv
+  const defaultOrigins: (string | RegExp)[] = [
+    /localhost:\d+$/,
+    /\.vercel\.app$/,
+    /\.onrender\.com$/,
+  ];
+  const parsedOrigins: (string | RegExp)[] = corsFromEnv
     ? corsFromEnv
         .split(',')
         .map((s) => s.trim())
@@ -21,7 +25,7 @@ async function bootstrap() {
     : defaultOrigins;
 
   app.enableCors({
-    origin: parsedOrigins as any,
+    origin: parsedOrigins,
     credentials: true,
   });
   app.use(helmet());
