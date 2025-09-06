@@ -108,6 +108,20 @@ describe('UsersService (unit)', () => {
     ).rejects.not.toMatchObject({ status: 409 });
   });
 
+  it('createUser: P2002 with non-matching array target does not map to 409', async () => {
+    prismaMock.user.create.mockRejectedValue({ code: 'P2002', meta: { target: ['User_username_key'] } });
+    await expect(
+      service.createUser({ email: 'a@b.com', name: 'Alice', password: 'password123' }),
+    ).rejects.not.toMatchObject({ status: 409 });
+  });
+
+  it('createUser: P2002 with unexpected target type does not map to 409', async () => {
+    prismaMock.user.create.mockRejectedValue({ code: 'P2002', meta: { target: 123 as unknown as string } });
+    await expect(
+      service.createUser({ email: 'a@b.com', name: 'Alice', password: 'password123' }),
+    ).rejects.not.toMatchObject({ status: 409 });
+  });
+
   it('findByEmail: normalizes query email before lookup', async () => {
     prismaMock.user.findUnique.mockResolvedValue(null);
     await service.findByEmail('  A@B.COM ');
