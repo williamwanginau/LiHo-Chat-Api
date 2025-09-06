@@ -20,7 +20,7 @@ export class UsersService {
       return await this.prisma.user.create({
         data: { email, name, passwordHash },
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (this.isUniqueViolation(e, 'User_email_key')) {
         throw new ConflictException('Email already registered');
       }
