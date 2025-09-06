@@ -4,21 +4,21 @@ Track the plan and progress for the chat server. Check off as you go.
 
 ## Foundation
 
-- [ ] Decide module format (CommonJS vs ESM); keep consistent
-- [ ] Initialize NestJS project skeleton (`src/`, `tests/`, `scripts/`, `assets/`)
-- [ ] Add `ConfigModule` and load `.env` (`DATABASE_URL`, `JWT_SECRET`, `PORT`, `NODE_ENV`)
-- [ ] Enable global `ValidationPipe` and `ClassSerializerInterceptor`
-- [ ] Add CORS allowlist and Helmet for REST
-- [ ] Implement `HealthController` (`/healthz`) with DB check
+- [x] Decide module format (CommonJS vs ESM); keep consistent
+- [x] Initialize NestJS project skeleton (`src/`, `tests/`, `scripts/`, `assets/`)
+- [x] Add `ConfigModule` and load `.env` (`DATABASE_URL`, `JWT_SECRET`, `PORT`, `NODE_ENV`)
+- [x] Enable global `ValidationPipe` and `ClassSerializerInterceptor`
+- [x] Add CORS allowlist and Helmet for REST (CORS_ORIGINS env supported)
+- [x] Implement `HealthController` (`/healthz`) with DB check (plus `/livez`, `/readyz`)
 
 ## Database & Prisma
 
-- [ ] Define Prisma schema for `User`, `Room`, `Membership`, `Message`
-- [ ] Add indices: `Message(roomId, createdAt DESC, id DESC)`; unique `(Membership.userId, roomId)`
-- [ ] Configure sensible FKs and delete rules (cascade memberships, consider soft‑delete for rooms/messages)
-- [ ] Add `PrismaService` with shutdown hooks
-- [ ] Create initial migration (`prisma migrate dev --name init`)
-- [ ] Seed script with demo users/rooms/messages
+- [x] Define Prisma schema for `User`, `Room`, `Membership`, `Message`
+- [x] Add indices: `Message(roomId, createdAt, id)`; unique `(Membership.userId, roomId)`
+- [x] Configure sensible FKs and delete rules (cascade memberships/messages)
+- [x] Add `PrismaService` with shutdown hooks
+- [x] Create initial migration (`prisma migrate dev --name init`)
+- [x] Seed script with demo users/rooms/messages (bcrypt hashes; prod-guard)
 
 ## Auth
 
@@ -55,14 +55,18 @@ Track the plan and progress for the chat server. Check off as you go.
 
 ## Frontend (Prototype - Next.js + TypeScript)
 
-- [ ] Scaffold Next.js 14 (App Router, TS) project
-- [ ] Define env: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_WS_URL`
+- [x] Scaffold Next.js 14 (App Router, TS) project
+- [x] Define env: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_WS_URL`
 - [ ] Implement auth pages (`/login`) and protected routes
 - [ ] Pages: `/rooms` (list), `/rooms/[id]` (thread)
 - [ ] Socket provider (`use client`) with `socket.io-client` and reconnection
 - [ ] React Query for REST data + cache hydration
 - [ ] Typing indicator and presence display
 - [ ] Infinite scroll for message history (cursor pagination)
+
+- [x] Proxy REST via Next rewrites (`/api/*` → `NEXT_PUBLIC_API_URL`) for dev/prod consistency
+- [x] Enhance `/health` page: dark UI cards, status dots, refresh, expandable details; test `/api/livez` & `/api/readyz`
+- [x] DX: add `.nvmrc` (Node 18.18.0), `.env.local.example`, and tidy `.gitignore`
 
 ## Docker & Local Dev
 
@@ -72,10 +76,13 @@ Track the plan and progress for the chat server. Check off as you go.
 
 ## Deployment
 
-- [ ] Provision Neon Postgres; ensure SSL (`sslmode=require`)
-- [ ] Render Web Service: build, start, env vars, `/healthz` check
+- [x] Provision Neon Postgres; ensure SSL (`sslmode=require`)
+- [x] Render Web Service: build, start, env vars, health check (`/livez`)
 - [ ] Vercel/Netlify frontend: set API URL, verify CORS and `wss://.../socket.io`
-- [ ] Migration deploy hook (`prisma migrate deploy` before start)
+- [x] Migration deploy hook (`prisma migrate deploy` before start)
+
+- [x] Render blueprint (`api/render.yaml`): health `/livez`, build/start commands, env var list
+- [x] Vercel auto-deploy connected for Web (Production on `main`, Preview on PR)
 
 ## CI/CD & Quality
 
@@ -83,6 +90,15 @@ Track the plan and progress for the chat server. Check off as you go.
 - [ ] Optional: auto‑deploy to Render on `main` push
 - [ ] E2E tests: register → login → create room → send message → fetch history
 - [ ] Load smoke test (k6/Autocannon)
+
+- [x] GitHub Actions build pipelines:
+  - API: Node 18, `npm ci`, `prisma generate`, `build`
+  - Web: Node 18, `npm ci`, `tsc --noEmit`, `build` (lockfile + caching enabled)
+
+- [ ] Require checks on `main` (branch protection: API Build, Web Build, Vercel)
+- [ ] Cache Next.js build artifacts (`.next/cache`) for faster CI
+- [ ] Add unit/e2e tests and enforce coverage threshold (≥ 85%)
+- [ ] Add workflow concurrency (cancel in-progress on new pushes)
 
 ## Nice‑to‑Have / Future Work
 
