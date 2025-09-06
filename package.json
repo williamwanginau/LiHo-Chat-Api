@@ -14,6 +14,7 @@
     "lint": "eslint .",
     "format": "prettier -w .",
     "test": "jest -c jest.config.ts --passWithNoTests",
+    "ci:local": "npm ci && npx prisma generate && npm run lint && npm test -- --coverage && npm run build",
     "test:watch": "jest -c jest.config.ts --watch",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
