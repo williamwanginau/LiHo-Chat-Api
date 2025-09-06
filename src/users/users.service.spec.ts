@@ -128,6 +128,79 @@ describe('UsersService (unit)', () => {
     expect(prismaMock.user.findUnique).toHaveBeenCalledWith({ where: { email: 'a@b.com' } });
   });
 
+  it('createUser: uses configured BCRYPT_ROUNDS when valid', async () => {
+    const prev = process.env.BCRYPT_ROUNDS;
+    process.env.BCRYPT_ROUNDS = '12';
+    const hashSpy = jest.spyOn(bcrypt, 'hash') as unknown as jest.SpyInstance<
+      Promise<string>,
+      [string, number]
+    >;
+    hashSpy.mockResolvedValue('hashed');
+    prismaMock.user.create.mockResolvedValue({
+      id: 'u1',
+      email: 'a@b.com',
+      name: 'Alice',
+      avatarUrl: null,
+      bio: null,
+      disabled: false,
+      createdAt: now,
+      updatedAt: now,
+      lastLoginAt: null,
+    } as Partial<User>);
+
+    await service.createUser({ email: 'a@b.com', name: 'Alice', password: 'password123' });
+    expect(hashSpy).toHaveBeenCalledWith('password123', 12);
+    process.env.BCRYPT_ROUNDS = prev;
+  });
+
+  it('createUser: falls back to 10 when BCRYPT_ROUNDS is invalid', async () => {
+    const prev = process.env.BCRYPT_ROUNDS;
+    process.env.BCRYPT_ROUNDS = 'abc';
+    const hashSpy = jest.spyOn(bcrypt, 'hash') as unknown as jest.SpyInstance<
+      Promise<string>,
+      [string, number]
+    >;
+    hashSpy.mockResolvedValue('hashed');
+    prismaMock.user.create.mockResolvedValue({
+      id: 'u1',
+      email: 'a@b.com',
+      name: 'Alice',
+      avatarUrl: null,
+      bio: null,
+      disabled: false,
+      createdAt: now,
+      updatedAt: now,
+      lastLoginAt: null,
+    } as Partial<User>);
+    await service.createUser({ email: 'a@b.com', name: 'Alice', password: 'password123' });
+    expect(hashSpy).toHaveBeenCalledWith('password123', 10);
+    process.env.BCRYPT_ROUNDS = prev;
+  });
+
+  it('createUser: falls back to 10 when BCRYPT_ROUNDS out of range', async () => {
+    const prev = process.env.BCRYPT_ROUNDS;
+    process.env.BCRYPT_ROUNDS = '16';
+    const hashSpy = jest.spyOn(bcrypt, 'hash') as unknown as jest.SpyInstance<
+      Promise<string>,
+      [string, number]
+    >;
+    hashSpy.mockResolvedValue('hashed');
+    prismaMock.user.create.mockResolvedValue({
+      id: 'u1',
+      email: 'a@b.com',
+      name: 'Alice',
+      avatarUrl: null,
+      bio: null,
+      disabled: false,
+      createdAt: now,
+      updatedAt: now,
+      lastLoginAt: null,
+    } as Partial<User>);
+    await service.createUser({ email: 'a@b.com', name: 'Alice', password: 'password123' });
+    expect(hashSpy).toHaveBeenCalledWith('password123', 10);
+    process.env.BCRYPT_ROUNDS = prev;
+  });
+
   it('updateLastLogin: updates lastLoginAt', async () => {
     prismaMock.user.update.mockResolvedValue({});
     await service.updateLastLogin('u1');
