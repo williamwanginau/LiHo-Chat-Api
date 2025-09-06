@@ -50,15 +50,14 @@ export class UsersService {
     };
   }
 
-  private isUniqueViolation(err: any, indexName: string): boolean {
-    // Prisma P2002 unique constraint failed
-    return (
-      err &&
-      (err as Prisma.PrismaClientKnownRequestError).code === 'P2002' &&
-      Array.isArray((err as any).meta?.target)
-        ? (err as any).meta.target.includes(indexName)
-        : true
-    );
+  private isUniqueViolation(err: unknown, indexName: string): boolean {
+    // Prisma P2002: unique constraint failed
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      const meta = err.meta as { target?: string[] } | undefined;
+      if (Array.isArray(meta?.target)) return meta!.target!.includes(indexName);
+      // When target is missing, still treat as uniqueness violation on the model
+      return true;
+    }
+    return false;
   }
 }
-
