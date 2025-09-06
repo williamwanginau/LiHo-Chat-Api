@@ -18,10 +18,18 @@ model User {
   email         String       @unique
   name          String
   passwordHash  String
+  // Optional profile & account fields
+  avatarUrl     String?
+  bio           String?
+  emailVerifiedAt DateTime?
+  disabled      Boolean      @default(false)
+  lastLoginAt   DateTime?
   messages      Message[]
   memberships   Membership[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
+
+  @@index([createdAt])
 }
 
 model Room {
@@ -60,4 +68,3 @@ model Message {
 
   @@index([roomId, createdAt, id], map: "idx_message_room_created_id")
 }
-
