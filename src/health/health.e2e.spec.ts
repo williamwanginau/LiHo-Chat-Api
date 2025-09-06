@@ -64,6 +64,18 @@ describe('Health e2e - /readyz (DB up)', () => {
     expect(res.body.status).toBe('ok');
     expect(res.body?.checks?.db).toBe('up');
   });
+
+  it('GET /healthz (alias) -> 200 with db: up', async () => {
+    const server = app.getHttpAdapter().getInstance();
+    const res = await request(server).get('/healthz').expect(200);
+    expect(res.body?.checks?.db).toBe('up');
+  });
+
+  it('GET /health (alias) -> 200 with db: up', async () => {
+    const server = app.getHttpAdapter().getInstance();
+    const res = await request(server).get('/health').expect(200);
+    expect(res.body?.checks?.db).toBe('up');
+  });
 });
 
 describe('Health e2e - /readyz (DB down)', () => {
@@ -92,6 +104,18 @@ describe('Health e2e - /readyz (DB down)', () => {
   it('GET /readyz -> 503 with db: down', async () => {
     const server = app.getHttpAdapter().getInstance();
     const res = await request(server).get('/readyz').expect(503);
+    expect(res.body?.checks?.db).toBe('down');
+  });
+
+  it('GET /healthz (alias) -> 503 with db: down', async () => {
+    const server = app.getHttpAdapter().getInstance();
+    const res = await request(server).get('/healthz').expect(503);
+    expect(res.body?.checks?.db).toBe('down');
+  });
+
+  it('GET /health (alias) -> 503 with db: down', async () => {
+    const server = app.getHttpAdapter().getInstance();
+    const res = await request(server).get('/health').expect(503);
     expect(res.body?.checks?.db).toBe('down');
   });
 });
