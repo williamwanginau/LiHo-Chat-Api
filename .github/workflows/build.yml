@@ -20,6 +20,8 @@ jobs:
         run: npm ci
       - name: Generate Prisma Client
         run: npx prisma generate
+      - name: Lint
+        run: npm run lint
       - name: Test (coverage)
         run: npm test -- --coverage
       - name: Build
