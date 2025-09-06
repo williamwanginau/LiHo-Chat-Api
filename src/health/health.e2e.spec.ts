@@ -34,3 +34,34 @@ describe('Health e2e - /livez', () => {
     await request(server).get('/livez').expect(200).expect({ status: 'ok' });
   });
 });
+
+describe('Health e2e - /readyz (DB up)', () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    const mockPrisma = {
+      $queryRaw: jest.fn().mockResolvedValue(1),
+    } satisfies Pick<PrismaService, '$queryRaw'>;
+
+    const moduleRef: TestingModule = await Test.createTestingModule({
+      imports: [HealthModule],
+    })
+      .overrideProvider(PrismaService)
+      .useValue(mockPrisma)
+      .compile();
+
+    app = moduleRef.createNestApplication();
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('GET /readyz -> 200 with db: up', async () => {
+    const server = app.getHttpAdapter().getInstance();
+    const res = await request(server).get('/readyz').expect(200);
+    expect(res.body.status).toBe('ok');
+    expect(res.body?.checks?.db).toBe('up');
+  });
+});
