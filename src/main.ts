@@ -4,6 +4,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { resolveCorsOrigins } from './config/cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -12,17 +13,7 @@ async function bootstrap() {
   // CORS origins: allow configuring via CORS_ORIGINS (comma-separated).
   // Fallback to commonly used patterns for local and hosted frontends.
   const corsFromEnv = config.get<string>('CORS_ORIGINS');
-  const defaultOrigins: (string | RegExp)[] = [
-    /localhost:\d+$/,
-    /\.vercel\.app$/,
-    /\.onrender\.com$/,
-  ];
-  const parsedOrigins: (string | RegExp)[] = corsFromEnv
-    ? corsFromEnv
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
-    : defaultOrigins;
+  const parsedOrigins = resolveCorsOrigins(corsFromEnv);
 
   app.enableCors({
     origin: parsedOrigins,
