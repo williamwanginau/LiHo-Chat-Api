@@ -4,15 +4,15 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserResponseDto } from './dto/user-response.dto';
 
+// Safe projection of User without passwordHash
+export type SafeUser = Pick<
+  User,
+  'id' | 'email' | 'name' | 'avatarUrl' | 'bio' | 'disabled' | 'createdAt' | 'updatedAt' | 'lastLoginAt'
+>;
+
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
-
-  // Safe projection of User without passwordHash
-  type SafeUser = Pick<
-    User,
-    'id' | 'email' | 'name' | 'avatarUrl' | 'bio' | 'disabled' | 'createdAt' | 'updatedAt' | 'lastLoginAt'
-  >;
 
   async createUser(params: {
     email: string;

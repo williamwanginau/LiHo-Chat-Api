@@ -41,7 +41,11 @@ describe('UsersService (unit)', () => {
       disabled: false,
       lastLoginAt: null,
     };
-    jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed');
+    const hashSpy = jest.spyOn(bcrypt, 'hash') as unknown as jest.SpyInstance<
+      Promise<string>,
+      [string, number]
+    >;
+    hashSpy.mockResolvedValue('hashed');
     prismaMock.user.create.mockResolvedValue(user);
 
     const res = await service.createUser({
