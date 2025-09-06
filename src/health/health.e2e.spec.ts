@@ -65,3 +65,33 @@ describe('Health e2e - /readyz (DB up)', () => {
     expect(res.body?.checks?.db).toBe('up');
   });
 });
+
+describe('Health e2e - /readyz (DB down)', () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    const mockPrisma = {
+      $queryRaw: jest.fn().mockRejectedValue(new Error('DB down')),
+    } satisfies Pick<PrismaService, '$queryRaw'>;
+
+    const moduleRef: TestingModule = await Test.createTestingModule({
+      imports: [HealthModule],
+    })
+      .overrideProvider(PrismaService)
+      .useValue(mockPrisma)
+      .compile();
+
+    app = moduleRef.createNestApplication();
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('GET /readyz -> 503 with db: down', async () => {
+    const server = app.getHttpAdapter().getInstance();
+    const res = await request(server).get('/readyz').expect(503);
+    expect(res.body?.checks?.db).toBe('down');
+  });
+});
