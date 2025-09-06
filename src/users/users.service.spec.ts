@@ -54,13 +54,15 @@ describe('UsersService (unit)', () => {
       password: 'password123',
     });
 
-    expect(prismaMock.user.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        email: 'a@b.com',
-        name: 'Alice',
-        passwordHash: 'hashed',
+    expect(prismaMock.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          email: 'a@b.com',
+          name: 'Alice',
+          passwordHash: 'hashed',
+        }),
       }),
-    });
+    );
     expect(bcrypt.hash).toHaveBeenCalledWith('password123', expect.any(Number));
     expect(bcrypt.hash).toHaveBeenCalledTimes(1);
     expect(prismaMock.user.create).toHaveBeenCalledTimes(1);
@@ -90,6 +92,20 @@ describe('UsersService (unit)', () => {
     expect(await service.findByEmail('a@b.com')).toBeNull();
     prismaMock.user.findUnique.mockResolvedValue({ id: 'u1' } as Partial<User>);
     expect(await service.findByEmail('a@b.com')).toMatchObject({ id: 'u1' });
+  });
+
+  it('createUser: P2002 with string target maps to 409 conflict', async () => {
+    prismaMock.user.create.mockRejectedValue({ code: 'P2002', meta: { target: 'email' } });
+    await expect(
+      service.createUser({ email: 'a@b.com', name: 'Alice', password: 'password123' }),
+    ).rejects.toMatchObject({ status: 409 });
+  });
+
+  it('createUser: P2002 without target does not map to email conflict', async () => {
+    prismaMock.user.create.mockRejectedValue({ code: 'P2002' });
+    await expect(
+      service.createUser({ email: 'a@b.com', name: 'Alice', password: 'password123' }),
+    ).rejects.not.toMatchObject({ status: 409 });
   });
 
   it('findByEmail: normalizes query email before lookup', async () => {

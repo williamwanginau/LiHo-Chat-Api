@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UserResponseDto } from './dto/user-response.dto';
 
 // Safe projection of User without passwordHash
-export type SafeUser = Pick<
+type SafeUser = Pick<
   User,
   'id' | 'email' | 'name' | 'avatarUrl' | 'bio' | 'disabled' | 'createdAt' | 'updatedAt' | 'lastLoginAt'
 >;

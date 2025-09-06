@@ -60,7 +60,7 @@ describe('AuthService (unit)', () => {
 
   it('validate: throws 401 when password mismatch', async () => {
     usersMock.findByEmail.mockResolvedValue({ id: 'u1', disabled: false, passwordHash: 'h' });
-    jest.spyOn(bcrypt, 'compare').mockResolvedValue(false);
+    jest.spyOn(bcrypt, 'compare').mockImplementation(async () => false);
     await expect(service.validate('a@b.com', 'pw')).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
@@ -74,7 +74,7 @@ describe('AuthService (unit)', () => {
   it('validate: returns user when bcrypt.compare ok', async () => {
     const user = { id: 'u1', disabled: false, passwordHash: 'h', email: 'a@b.com' };
     usersMock.findByEmail.mockResolvedValue(user);
-    jest.spyOn(bcrypt, 'compare').mockResolvedValue(true);
+    jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
     const res = await service.validate('a@b.com', 'pw');
     expect(res).toBe(user);
   });
@@ -82,7 +82,7 @@ describe('AuthService (unit)', () => {
   it('login: updates lastLogin and returns signed token', async () => {
     const user = { id: 'u1', disabled: false, passwordHash: 'h', email: 'a@b.com' };
     usersMock.findByEmail.mockResolvedValue(user);
-    jest.spyOn(bcrypt, 'compare').mockResolvedValue(true);
+    jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
     jwtMock.signAsync.mockResolvedValue('token');
 
     const res = await service.login({ email: ' A@B.COM ', password: 'password123' });
@@ -97,7 +97,7 @@ describe('AuthService (unit)', () => {
   it('login: throws 401 on invalid credentials and does not update or sign', async () => {
     const user = { id: 'u1', disabled: false, passwordHash: 'h', email: 'a@b.com' };
     usersMock.findByEmail.mockResolvedValue(user);
-    jest.spyOn(bcrypt, 'compare').mockResolvedValue(false);
+    jest.spyOn(bcrypt, 'compare').mockImplementation(async () => false);
     await expect(service.login({ email: 'a@b.com', password: 'wrong' })).rejects.toBeInstanceOf(
       UnauthorizedException,
     );
@@ -124,7 +124,7 @@ describe('AuthService (unit)', () => {
   it('login: passes payload and options to signAsync', async () => {
     const user = { id: 'u1', disabled: false, passwordHash: 'h', email: 'a@b.com' };
     usersMock.findByEmail.mockResolvedValue(user);
-    jest.spyOn(bcrypt, 'compare').mockResolvedValue(true);
+    jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
     jwtMock.signAsync.mockResolvedValue('token');
 
     await service.login({ email: 'a@b.com', password: 'pw' });
@@ -150,7 +150,7 @@ describe('AuthService (unit)', () => {
   it('login: normalizes email before lookup', async () => {
     const user = { id: 'u1', disabled: false, passwordHash: 'h', email: 'a@b.com' };
     usersMock.findByEmail.mockResolvedValue(user);
-    jest.spyOn(bcrypt, 'compare').mockResolvedValue(true);
+    jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
     jwtMock.signAsync.mockResolvedValue('token');
 
     await service.login({ email: '  A@B.COM ', password: 'pw' });
@@ -159,7 +159,9 @@ describe('AuthService (unit)', () => {
 
   it('validate: bcrypt throws -> bubbles up', async () => {
     usersMock.findByEmail.mockResolvedValue({ id: 'u1', disabled: false, passwordHash: 'h' });
-    jest.spyOn(bcrypt, 'compare').mockRejectedValue(new Error('hash-fail'));
+    jest.spyOn(bcrypt, 'compare').mockImplementation(async () => {
+      throw new Error('hash-fail');
+    });
     await expect(service.validate('a@b.com', 'pw')).rejects.toThrow('hash-fail');
   });
 });
