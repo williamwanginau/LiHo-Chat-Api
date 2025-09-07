@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-var-requires */
 const { spawn } = require('node:child_process');
 
 function run(cmd, args, opts = {}) {
@@ -31,4 +32,3 @@ main().catch((err) => {
   console.error('[start-render] failed:', err);
   process.exit(1);
 });
-
