@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { PrismaService } from '../prisma/prisma.service';
 
-// bcrypt 快速 mock
+// Fast bcrypt mock
 jest.mock('bcrypt', () => ({
   __esModule: true,
   hash: jest.fn(async (pw: string) => `h:${pw}`),
@@ -125,4 +125,3 @@ describe('Auth throttling e2e', () => {
       .expect(429);
   });
 });
-

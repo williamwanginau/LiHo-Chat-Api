@@ -12,7 +12,8 @@ async function main() {
     process.exit(1);
   }
 
-  const demoHash = await bcrypt.hash('demo', 10);
+  // Demo password must satisfy API policy (>= 8 chars)
+  const demoHash = await bcrypt.hash('demopass123', 10);
   const alice = await prisma.user.upsert({
     where: { email: 'alice@example.com' },
     update: {},

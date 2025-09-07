@@ -20,8 +20,8 @@ API for LiHo Chat (NestJS + Prisma). Provides health checks, auth, and chat endp
 
 ## Endpoints (auth)
 - `POST /auth/register` — { email, name, password } → 201 User (no passwordHash)
-- `POST /auth/login` — { email, password } → 200 { accessToken, tokenType: Bearer, expiresIn }
-- `GET /auth/me` — Bearer token → 200 User；若 JWT 無效或使用者不存在 → 401
+- `POST /auth/login` — { email, password } → 200 { accessToken, tokenType: Bearer, expiresIn } (password length ≥ 8)
+- `GET /auth/me` — Bearer token → 200 User; if JWT is invalid or the user does not exist → 401
 
 ## Health
 - Liveness: `GET /livez`

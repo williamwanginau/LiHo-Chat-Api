@@ -17,4 +17,3 @@ export class LoginDto {
   @Length(8, 128)
   password!: string;
 }
-
