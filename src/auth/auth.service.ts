@@ -43,12 +43,8 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email };
     const accessToken = await this.jwt.signAsync(payload, { expiresIn: expiresInSec });
 
-    // Update last login after successful token issuance; best-effort
-    try {
-      await this.users.updateLastLogin(user.id);
-    } catch (_e) {
-      // no-op: do not fail login if bookkeeping update fails
-    }
+    // Update last login after successful token issuance; best-effort and non-blocking
+    void this.users.updateLastLogin(user.id).catch(() => undefined);
 
     return { accessToken, tokenType: 'Bearer', expiresIn: expiresInSec };
   }
