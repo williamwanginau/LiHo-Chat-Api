@@ -4,7 +4,10 @@ import { PrismaClient } from '@prisma/client';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
-    await this.$connect();
+    // Allow disabling auto-connect for tests or special envs
+    if (process.env.PRISMA_CONNECT_ON_BOOT !== 'false') {
+      await this.$connect();
+    }
   }
 
   async onModuleDestroy() {

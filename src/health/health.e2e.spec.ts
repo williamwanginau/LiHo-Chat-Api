@@ -29,8 +29,8 @@ describe('Health e2e - /livez', () => {
   });
 
   it('GET /livez -> 200 { status: "ok" }', async () => {
-    // Use the underlying Express instance to avoid opening a real port
-    const server = app.getHttpAdapter().getInstance();
+    // Use Nest's in-memory http server (no real port needed)
+    const server = app.getHttpServer();
     await request(server).get('/livez').expect(200).expect({ status: 'ok' });
   });
 });
@@ -59,20 +59,20 @@ describe('Health e2e - /readyz (DB up)', () => {
   });
 
   it('GET /readyz -> 200 with db: up', async () => {
-    const server = app.getHttpAdapter().getInstance();
+    const server = app.getHttpServer();
     const res = await request(server).get('/readyz').expect(200);
     expect(res.body.status).toBe('ok');
     expect(res.body?.checks?.db).toBe('up');
   });
 
   it('GET /healthz (alias) -> 200 with db: up', async () => {
-    const server = app.getHttpAdapter().getInstance();
+    const server = app.getHttpServer();
     const res = await request(server).get('/healthz').expect(200);
     expect(res.body?.checks?.db).toBe('up');
   });
 
   it('GET /health (alias) -> 200 with db: up', async () => {
-    const server = app.getHttpAdapter().getInstance();
+    const server = app.getHttpServer();
     const res = await request(server).get('/health').expect(200);
     expect(res.body?.checks?.db).toBe('up');
   });
@@ -102,19 +102,19 @@ describe('Health e2e - /readyz (DB down)', () => {
   });
 
   it('GET /readyz -> 503 with db: down', async () => {
-    const server = app.getHttpAdapter().getInstance();
+    const server = app.getHttpServer();
     const res = await request(server).get('/readyz').expect(503);
     expect(res.body?.checks?.db).toBe('down');
   });
 
   it('GET /healthz (alias) -> 503 with db: down', async () => {
-    const server = app.getHttpAdapter().getInstance();
+    const server = app.getHttpServer();
     const res = await request(server).get('/healthz').expect(503);
     expect(res.body?.checks?.db).toBe('down');
   });
 
   it('GET /health (alias) -> 503 with db: down', async () => {
-    const server = app.getHttpAdapter().getInstance();
+    const server = app.getHttpServer();
     const res = await request(server).get('/health').expect(503);
     expect(res.body?.checks?.db).toBe('down');
   });

@@ -55,6 +55,10 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
+  async findById(id: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { id } });
+  }
+
   async updateLastLogin(id: string): Promise<void> {
     await this.prisma.user.update({ where: { id }, data: { lastLoginAt: new Date() } });
   }
@@ -74,21 +78,17 @@ export class UsersService {
   }
 
   private isUniqueViolation(err: unknown, targetNames: string | string[]): boolean {
-    // Duck-typing Prisma P2002 to avoid depending on internal error classes
-    const names = Array.isArray(targetNames) ? targetNames : [targetNames];
+    // Duck-typing Prisma P2002 without relying on Prisma error classes
+    const names = (Array.isArray(targetNames) ? targetNames : [targetNames]).map((s) => s.toLowerCase());
     const k = err as { code?: string; meta?: { target?: string | string[] } };
     if (k?.code !== 'P2002') return false;
     const metaTarget = k.meta?.target;
-    // If target is missing, do not assume it is the intended field; let caller rethrow
     if (!metaTarget) return false;
 
-    const match = (t: string) => {
-      const tl = t.toLowerCase();
-      return names.some((n) => tl.includes(n.toLowerCase()));
-    };
+    const eq = (t: unknown) => (typeof t === 'string' ? names.includes(t.toLowerCase()) : false);
 
-    if (Array.isArray(metaTarget)) return metaTarget.some(match);
-    if (typeof metaTarget === 'string') return match(metaTarget);
+    if (Array.isArray(metaTarget)) return metaTarget.some(eq);
+    if (typeof metaTarget === 'string') return eq(metaTarget);
     return false;
   }
 }

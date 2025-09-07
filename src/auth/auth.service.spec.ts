@@ -30,6 +30,7 @@ describe('AuthService (unit)', () => {
     service = new AuthService(
       usersDep as unknown as UsersService,
       jwtDep as unknown as JwtService,
+      900,
     );
   });
 

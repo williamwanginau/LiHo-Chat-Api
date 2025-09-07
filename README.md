@@ -15,13 +15,13 @@ API for LiHo Chat (NestJS + Prisma). Provides health checks, auth, and chat endp
 - Local CI (mimic GitHub Actions): `npm run ci:local`
 
 ## Environment
-- Required: `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV`
-- Optional: `PORT`, `CORS_ORIGINS` (comma‑separated), `SEED_ALLOW_PROD`
+- Required: `DATABASE_URL`, `JWT_SECRET` (min length 10), `NODE_ENV`
+- Optional: `PORT`, `CORS_ORIGINS` (comma‑separated), `SEED_ALLOW_PROD`, `JWT_EXPIRES_SEC` (default 900), `PRISMA_CONNECT_ON_BOOT` (default true)
 
 ## Endpoints (auth)
 - `POST /auth/register` — { email, name, password } → 201 User (no passwordHash)
 - `POST /auth/login` — { email, password } → 200 { accessToken, tokenType: Bearer, expiresIn }
-- `GET /auth/me` — Bearer token → 200 User
+- `GET /auth/me` — Bearer token → 200 User；若 JWT 無效或使用者不存在 → 401
 
 ## Health
 - Liveness: `GET /livez`
@@ -32,3 +32,9 @@ API for LiHo Chat (NestJS + Prisma). Provides health checks, auth, and chat endp
 - Build: `npm ci && npm run prisma:generate && npm run build`
 - Start: `npm run prisma:deploy && npm run start:prod`
 - See `render.yaml` for env list
+
+## CORS
+
+- In development/test: when `CORS_ORIGINS` is empty, defaults allow local origins (`localhost`, `127.0.0.1`).
+- In production: when `CORS_ORIGINS` is empty, no cross‑origin requests are allowed by default.
+- Set `CORS_ORIGINS` to a comma‑separated allowlist (e.g., `https://app.example.com,https://www.example.com`).

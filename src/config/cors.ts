@@ -1,35 +1,33 @@
 export type Origin = string | RegExp;
 
-const DEFAULTS: Origin[] = [
-  /localhost:\d+$/,
-  /\.vercel\.app$/,
-  /\.onrender\.com$/,
-];
+// Development-safe defaults; in production we require explicit allowlist.
+const DEFAULTS_DEV: Origin[] = [/localhost:\d+$/, /127\.0\.0\.1:\d+$/];
 
 export function defaultCorsOrigins(): Origin[] {
-  // Return a copy to prevent accidental mutation by callers
-  return [...DEFAULTS];
+  return [...DEFAULTS_DEV];
 }
 
 /**
  * Parse comma-separated origins from env into a list of string origins.
- * Falls back to default regex origins when empty/invalid.
+ * - dev/test: when empty, fall back to localhost patterns.
+ * - production: when empty, allow none (require explicit CORS_ORIGINS).
  */
 export function resolveCorsOrigins(src?: string): Origin[] {
   const trimmed = (src ?? '').trim();
-  if (!trimmed) return defaultCorsOrigins();
+  const env = (process.env.NODE_ENV || 'development').toLowerCase();
+  if (!trimmed) {
+    return env === 'production' ? [] : defaultCorsOrigins();
+  }
 
   const items = trimmed
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean)
-    // drop trailing slashes to reduce mismatches (e.g., https://a.com/ → https://a.com)
     .map((s) => s.replace(/\/+$/, ''));
 
-  // Deduplicate while preserving order
   const seen = new Set<string>();
   const uniq = items.filter((s) => (seen.has(s) ? false : (seen.add(s), true)));
 
-  return uniq.length ? uniq : defaultCorsOrigins();
+  if (uniq.length) return uniq;
+  return env === 'production' ? [] : defaultCorsOrigins();
 }
-

@@ -3,10 +3,16 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { UserResponseDto } from '../users/dto/user-response.dto';
+import { Inject } from '@nestjs/common';
+import { AUTH_ACCESS_EXPIRES_SEC } from './auth.tokens';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly users: UsersService, private readonly jwt: JwtService) {}
+  constructor(
+    private readonly users: UsersService,
+    private readonly jwt: JwtService,
+    @Inject(AUTH_ACCESS_EXPIRES_SEC) private readonly expiresSec: number,
+  ) {}
 
   async register(data: { email: string; name: string; password: string }): Promise<UserResponseDto> {
     const email = data.email.trim().toLowerCase();
@@ -33,7 +39,7 @@ export class AuthService {
     const user = await this.validate(email, data.password);
 
     // Sign token with an explicit expiration that matches the response
-    const expiresInSec = 15 * 60; // could be read from ConfigService in the future
+    const expiresInSec = this.expiresSec;
     const payload = { sub: user.id, email: user.email };
     const accessToken = await this.jwt.signAsync(payload, { expiresIn: expiresInSec });
 
