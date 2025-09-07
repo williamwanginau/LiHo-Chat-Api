@@ -116,7 +116,7 @@ describe('Auth throttling e2e', () => {
       await request(server)
         .post('/auth/login')
         .send({ email: 't@example.com', password: 'password123' })
-        .expect(201);
+        .expect(200);
     }
     // 6th should be throttled
     await request(server)

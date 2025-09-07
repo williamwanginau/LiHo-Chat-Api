@@ -194,7 +194,7 @@ describe('Auth e2e - /auth/register /auth/login /auth/me', () => {
     const login = await request(server)
       .post('/auth/login')
       .send({ email: '  BOB@EXAMPLE.COM ', password: 'password123' })
-      .expect(201);
+      .expect(200);
 
     expect(login.body).toMatchObject({ tokenType: 'Bearer' });
     expect(typeof login.body.accessToken).toBe('string');
@@ -237,7 +237,7 @@ describe('Auth e2e - /auth/register /auth/login /auth/me', () => {
     const login = await request(server)
       .post('/auth/login')
       .send({ email: 'gone@example.com', password: 'password123' })
-      .expect(201);
+      .expect(200);
 
     // Delete the user from mock store to simulate missing user
     usersByEmail.delete('gone@example.com');

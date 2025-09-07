@@ -27,6 +27,18 @@ API for LiHo Chat (NestJS + Prisma). Provides health checks, auth, and chat endp
 - Liveness: `GET /livez`
 - Readiness: `GET /readyz`
 
+### Quick test (curl)
+
+```bash
+API=https://<your-api-host>
+curl -s -X POST "$API/auth/login" \
+  -H 'content-type: application/json' \
+  -d '{"email":"alice@example.com","password":"demopass123"}'
+
+TOKEN=<paste accessToken>
+curl -s "$API/auth/me" -H "Authorization: Bearer $TOKEN"
+```
+
 ## Deploy (Render)
 - Health Check Path: `/livez`
 - Build: `npm ci && npm run prisma:generate && npm run build`
