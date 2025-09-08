@@ -12,40 +12,52 @@ describe('MessagesService (unit)', () => {
 
   const prismaMock = {
     room: {
-      findUnique: jest.fn(async ({ where, select }: any) => {
-        const r = rooms.get(where.id);
-        if (!r) return null;
-        if (!select) return r;
-        const out: any = {};
-        if (select.id) out.id = r.id;
-        if (select.isPrivate) out.isPrivate = r.isPrivate;
-        return out;
-      }),
+      findUnique: jest.fn(
+        async ({ where, select }: { where: { id: string }; select?: { id?: boolean; isPrivate?: boolean } }) => {
+          const r = rooms.get(where.id);
+          if (!r) return null;
+          if (!select) return (r as unknown) as { id?: string; isPrivate?: boolean };
+          const out: Partial<{ id: string; isPrivate: boolean }> = {};
+          if (select.id) out.id = r.id;
+          if (select.isPrivate) out.isPrivate = r.isPrivate;
+          return out as { id?: string; isPrivate?: boolean };
+        },
+      ),
     },
     membership: {
-      count: jest.fn(async ({ where }: any) => (memberships.has(`${where.userId}:${where.roomId}`) ? 1 : 0)),
+      count: jest.fn(async ({ where }: { where: { userId: string; roomId: string } }) => (memberships.has(`${where.userId}:${where.roomId}`) ? 1 : 0)),
     },
     message: {
-      findMany: jest.fn(async ({ where, orderBy, take, select }: any) => {
-        let xs = messages.filter((m) => m.roomId === where.roomId);
-        if (where.OR) {
-          const [a, b] = where.OR;
-          const lt = a?.createdAt?.lt as Date | undefined;
-          const eq = b?.AND?.[0]?.createdAt?.equals as Date | undefined;
-          const idlt = b?.AND?.[1]?.id?.lt as string | undefined;
-          xs = xs.filter((m) => (lt ? m.createdAt < lt : eq && idlt ? m.createdAt.getTime() === eq.getTime() && m.id < idlt : true));
-        }
-        xs.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : a.id < b.id ? 1 : -1));
-        const out = xs.slice(0, take).map((m) => ({
-          id: m.id,
-          roomId: m.roomId,
-          content: m.content,
-          createdAt: m.createdAt,
-          updatedAt: m.updatedAt,
-          user: { id: m.userId, name: `U-${m.userId}` },
-        }));
-        return out;
-      }),
+      findMany: jest.fn(
+        async ({
+          where,
+          orderBy: _orderBy,
+          take,
+          select: _select,
+        }: { where: { roomId: string; OR?: unknown[] }; orderBy?: unknown; take?: number; select?: unknown }) => {
+          let xs = messages.filter((m) => m.roomId === where.roomId);
+          if (where.OR) {
+            const [a, b] = where.OR as [
+              { createdAt?: { lt?: Date } }?,
+              { AND?: [{ createdAt?: { equals?: Date } }?, { id?: { lt?: string } }?] }?,
+            ];
+            const lt = a?.createdAt?.lt;
+            const eq = b?.AND?.[0]?.createdAt?.equals;
+            const idlt = b?.AND?.[1]?.id?.lt;
+            xs = xs.filter((m) => (lt ? m.createdAt < lt : eq && idlt ? m.createdAt.getTime() === eq.getTime() && m.id < idlt : true));
+          }
+          xs.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : a.id < b.id ? 1 : -1));
+          const out = xs.slice(0, take).map((m) => ({
+            id: m.id,
+            roomId: m.roomId,
+            content: m.content,
+            createdAt: m.createdAt,
+            updatedAt: m.updatedAt,
+            user: { id: m.userId, name: `U-${m.userId}` },
+          }));
+          return out;
+        },
+      ),
     },
   } as unknown as PrismaService;
 
@@ -91,4 +103,3 @@ describe('MessagesService (unit)', () => {
     expect(out.serverTime instanceof Date || typeof out.serverTime === 'string').toBe(true);
   });
 });
-

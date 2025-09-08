@@ -2,6 +2,8 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { PrismaService } from '../prisma/prisma.service';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 // Fast bcrypt mock
 jest.mock('bcrypt', () => ({
@@ -81,16 +83,24 @@ describe('Auth throttling e2e', () => {
   beforeAll(async () => {
     process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-strong';
     process.env.PRISMA_CONNECT_ON_BOOT = 'false';
+    // Ensure global throttler is registered by AppModule
+    const prevEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
     const { AppModule } = await import('../app.module');
     const moduleRef: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService)
       .useValue(mockPrisma)
+      // Ensure throttling is enabled for this suite even if disabled globally in test env
+      .overrideProvider(APP_GUARD)
+      .useClass(ThrottlerGuard)
       .compile();
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, transform: true, forbidUnknownValues: true }),
     );
     await app.init();
+    // Restore env to avoid side effects on other tests
+    process.env.NODE_ENV = prevEnv;
   });
 
   afterAll(async () => {

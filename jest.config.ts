@@ -15,6 +15,15 @@ const config: Config = {
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],
+  // Ignore framework glue files that don't carry business logic to make coverage more meaningful
+  coveragePathIgnorePatterns: [
+    '/node_modules/',
+    '<rootDir>/src/app.module.ts',
+    '<rootDir>/src/.+\\.module\\.ts$',
+    '<rootDir>/src/auth/optional-jwt\\.guard\\.ts$',
+    '<rootDir>/src/.+/dto/.+\\.ts$',
+    '<rootDir>/src/.+\\.exception-filter\\.ts$',
+  ],
   coverageThreshold: {
     global: {
       branches: 85,

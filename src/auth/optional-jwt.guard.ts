@@ -12,21 +12,34 @@ export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  override handleRequest(err: unknown, user: unknown, info: unknown, context: ExecutionContext) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  override handleRequest<TUser = any>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    err: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    user: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    _info: any,
+    context: ExecutionContext,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    _status?: any,
+  ): TUser {
     const req = context.switchToHttp().getRequest<{ headers?: Record<string, string | string[] | undefined> }>();
-    const auth = (req.headers?.authorization ?? req.headers?.Authorization) as string | undefined;
+    const auth = (req.headers?.authorization ?? (req.headers as unknown as Record<string, string | undefined>)?.Authorization) as
+      | string
+      | undefined;
     const hasAuth = typeof auth === 'string' && auth.trim().toLowerCase().startsWith('bearer ');
 
     if (!hasAuth) {
-      // No Authorization header → treat as anonymous (no req.user)
-      return undefined;
+      // No Authorization header → treat as anonymous
+      // Return null casted to TUser to satisfy AuthGuard contract
+      return (null as unknown) as TUser;
     }
 
     // Authorization was provided: invalid → 401
     if (err || !user) {
       throw err instanceof Error ? err : new UnauthorizedException();
     }
-    return user;
+    return user as TUser;
   }
 }
-

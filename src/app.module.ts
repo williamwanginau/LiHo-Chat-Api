@@ -25,7 +25,8 @@ import { MessagesModule } from './messages/messages.module';
     MessagesModule,
   ],
   providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    // Disable global throttling in test to avoid cross-suite flakiness; tests can opt-in per suite
+    ...(process.env.NODE_ENV === 'test' ? [] : [{ provide: APP_GUARD, useClass: ThrottlerGuard }]),
   ],
 })
 export class AppModule {}

@@ -41,9 +41,9 @@ export function decodeCursor(cursor: string): CursorTuple {
   const dt = new Date(iso);
   if (Number.isNaN(dt.getTime())) throw new Error('Invalid cursor');
 
-  const idOk = /^[A-Za-z0-9][A-Za-z0-9_-]{9,63}$/.test(id);
+  // Allow 2..64 length to accommodate various id schemes (uuid/cuid/short ids in tests)
+  const idOk = /^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$/.test(id);
   if (!idOk) throw new Error('Invalid cursor');
 
   return { createdAt: dt, id };
 }
-

@@ -7,13 +7,13 @@ describe('RoomsService (unit)', () => {
 
   const prismaMock = {
     membership: {
-      count: jest.fn(),
+      count: jest.fn<Promise<number>, [unknown]>(),
     },
     room: {
-      findMany: jest.fn(),
-      create: jest.fn(),
+      findMany: jest.fn<Promise<unknown[]>, [unknown]>(),
+      create: jest.fn<Promise<unknown>, [unknown]>(),
     },
-    $transaction: jest.fn(async (cb: (tx: any) => Promise<any>) => cb(prismaMock)),
+    $transaction: jest.fn(async (cb: (tx: unknown) => Promise<unknown>) => cb(({} as unknown) as PrismaService)),
   } as unknown as PrismaService;
 
   beforeEach(() => {
@@ -27,12 +27,12 @@ describe('RoomsService (unit)', () => {
   });
 
   it('isMember: true when membership count > 0', async () => {
-    (prismaMock.membership.count as any).mockResolvedValue(1);
+    (prismaMock.membership.count as unknown as jest.Mock).mockResolvedValue(1);
     await expect(svc.isMember('u1', 'r1')).resolves.toBe(true);
   });
 
   it('listRooms: maps lastMessage when present', async () => {
-    (prismaMock.room.findMany as any).mockResolvedValue([
+    (prismaMock.room.findMany as unknown as jest.Mock).mockResolvedValue([
       {
         id: 'r1',
         name: 'Room',
@@ -53,4 +53,3 @@ describe('RoomsService (unit)', () => {
     expect(out[1].lastMessage).toBeUndefined();
   });
 });
-

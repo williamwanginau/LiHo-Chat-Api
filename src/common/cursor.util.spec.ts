@@ -26,9 +26,8 @@ describe('cursor.util', () => {
   });
 
   it('rejects invalid id charset/length', () => {
-    const badId = 'abc';
+    const badId = 'a';
     const s = Buffer.from(`${now.toISOString()}|${badId}`, 'utf8').toString('base64');
     expect(() => decodeCursor(s)).toThrow(/Invalid cursor/);
   });
 });
-

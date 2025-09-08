@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from '../app.module';
 import { PrismaService } from '../prisma/prisma.service';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt.guard';
+import { APP_GUARD } from '@nestjs/core';
 
 type UserRow = { id: string; name: string };
 type RoomRow = { id: string; name: string; isPrivate: boolean; createdAt: Date; updatedAt: Date };
@@ -54,11 +55,11 @@ describe('Messages e2e - GET /rooms/:id/messages', () => {
       findUnique: jest.fn(async ({ where, select }: { where: { id: string }; select?: { id?: boolean; isPrivate?: boolean } }) => {
         const r = rooms.find((x) => x.id === where.id);
         if (!r) return null;
-        if (!select) return r as any;
-        const out: any = {};
+        if (!select) return (r as unknown) as { id?: string; isPrivate?: boolean };
+        const out: Partial<{ id: string; isPrivate: boolean }> = {};
         if (select.id) out.id = r.id;
         if (select.isPrivate) out.isPrivate = r.isPrivate;
-        return out;
+        return out as { id?: string; isPrivate?: boolean };
       }),
     },
     membership: {
@@ -67,37 +68,55 @@ describe('Messages e2e - GET /rooms/:id/messages', () => {
       ),
     },
     message: {
-      findMany: jest.fn(async ({ where, orderBy, take, select }: any) => {
-        let xs = messages.filter((m) => m.roomId === where.roomId);
-        if (where.OR) {
-          const [a, b] = where.OR;
+      findMany: jest.fn(
+        async ({
+          where,
+          orderBy: _orderBy,
+          take,
+          select: _select,
+        }: {
+          where: { roomId: string; OR?: unknown[] };
+          orderBy?: unknown;
+          take?: number;
+          select?: unknown;
+        }) => {
+          let xs = messages.filter((m) => m.roomId === where.roomId);
+          if (where.OR) {
+            const [a, b] = where.OR as [
+              { createdAt?: { lt?: Date } }?,
+              { AND?: [{ createdAt?: { equals?: Date } }?, { id?: { lt?: string } }?] }?,
+            ];
           xs = xs.filter((m) => {
-            const lt = a?.createdAt?.lt as Date | undefined;
-            const eq = b?.AND?.[0]?.createdAt?.equals as Date | undefined;
-            const idlt = b?.AND?.[1]?.id?.lt as string | undefined;
+            const lt = a?.createdAt?.lt;
+            const eq = b?.AND?.[0]?.createdAt?.equals;
+            const idlt = b?.AND?.[1]?.id?.lt;
             if (lt) return m.createdAt < lt;
             if (eq && idlt) return m.createdAt.getTime() === eq.getTime() && m.id < idlt;
             return true;
           });
-        }
-        xs.sort(sortDesc);
-        const limit = (take as number) ?? 10;
-        const sliced = xs.slice(0, limit);
-        return sliced.map((m) => ({
-          id: m.id,
-          roomId: m.roomId,
-          content: m.content,
-          createdAt: m.createdAt,
-          updatedAt: m.updatedAt,
-          user: { id: users.get(m.userId)!.id, name: users.get(m.userId)!.name },
-        }));
-      }),
+          }
+          xs.sort(sortDesc);
+          const limit = take ?? 10;
+          const sliced = xs.slice(0, limit);
+          return sliced.map((m) => ({
+            id: m.id,
+            roomId: m.roomId,
+            content: m.content,
+            createdAt: m.createdAt,
+            updatedAt: m.updatedAt,
+            user: { id: users.get(m.userId)!.id, name: users.get(m.userId)!.name },
+          }));
+        },
+      ),
     },
   } as unknown as PrismaService;
 
   class FakeOptionalGuard implements CanActivate {
     canActivate(context: ExecutionContext) {
-      const req = context.switchToHttp().getRequest<{ headers: any; user?: any }>();
+      const req = context.switchToHttp().getRequest<{
+        headers: Record<string, unknown>;
+        user?: { userId: string; email: string };
+      }>();
       const auth = req.headers?.authorization as string | undefined;
       if (!auth) return true;
       const uid = auth.includes('user:u2') ? 'u2' : 'u1';
@@ -108,11 +127,17 @@ describe('Messages e2e - GET /rooms/:id/messages', () => {
 
   beforeAll(async () => {
     process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-strong';
+    class AllowAll implements CanActivate {
+      canActivate(_context: ExecutionContext) { return true; }
+    }
     const moduleRef: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService)
       .useValue(mockPrisma)
       .overrideGuard(OptionalJwtAuthGuard)
       .useValue(new FakeOptionalGuard())
+      // Disable global throttling for this suite to avoid cross-suite 429s
+      .overrideProvider(APP_GUARD)
+      .useValue(new AllowAll())
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -170,4 +195,3 @@ describe('Messages e2e - GET /rooms/:id/messages', () => {
     await request(server).get('/rooms/public/messages?limit=101').expect(400);
   });
 });
-
