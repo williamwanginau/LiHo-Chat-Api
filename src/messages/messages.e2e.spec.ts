@@ -1,7 +1,7 @@
 import { INestApplication, ValidationPipe, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
-import { AppModule } from '../app.module';
+// Note: import AppModule dynamically after setting env in beforeAll
 import { PrismaService } from '../prisma/prisma.service';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt.guard';
 import { APP_GUARD } from '@nestjs/core';
@@ -130,6 +130,7 @@ describe('Messages e2e - GET /rooms/:id/messages', () => {
     class AllowAll implements CanActivate {
       canActivate(_context: ExecutionContext) { return true; }
     }
+    const { AppModule } = await import('../app.module');
     const moduleRef: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService)
       .useValue(mockPrisma)

@@ -85,7 +85,9 @@ describe('Auth throttling e2e', () => {
     process.env.PRISMA_CONNECT_ON_BOOT = 'false';
     // Ensure global throttler is registered by AppModule
     const prevEnv = process.env.NODE_ENV;
+    const prevDb = process.env.DATABASE_URL;
     process.env.NODE_ENV = 'development';
+    process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgres://user:pass@localhost:5432/app?schema=public';
     const { AppModule } = await import('../app.module');
     const moduleRef: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService)
@@ -101,6 +103,7 @@ describe('Auth throttling e2e', () => {
     await app.init();
     // Restore env to avoid side effects on other tests
     process.env.NODE_ENV = prevEnv;
+    process.env.DATABASE_URL = prevDb;
   });
 
   afterAll(async () => {
